@@ -1,19 +1,30 @@
-// Database setup script for Vercel Postgres
+// Database setup script for Vercel Postgres (Optimized)
 import { createClient } from '@vercel/postgres';
 
 const client = createClient(process.env.POSTGRES_URL);
 
 export default async function handler(req, res) {
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
   try {
-    // Create tables
+    // Create tables with optimized schema
     await client.query(`
       CREATE TABLE IF NOT EXISTS products (
         id SERIAL PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         price DECIMAL(10, 2) NOT NULL,
-        unit VARCHAR(50) NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        unit VARCHAR(50) NOT NULL
       )
     `);
 
@@ -24,8 +35,7 @@ export default async function handler(req, res) {
         phone VARCHAR(20) NOT NULL,
         address TEXT NOT NULL,
         total_amount DECIMAL(10, 2) NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
@@ -39,9 +49,10 @@ export default async function handler(req, res) {
       )
     `);
 
-    // Insert sample products
+    // Clear existing products
     await client.query('DELETE FROM products');
     
+    // Insert sample products in batch
     const sampleProducts = [
       ['Milk', 50.00, 'Liter'],
       ['Curd', 40.00, '500g'],
@@ -50,19 +61,30 @@ export default async function handler(req, res) {
       ['Ghee', 200.00, '500ml']
     ];
 
-    for (const [name, price, unit] of sampleProducts) {
-      await client.query(
-        'INSERT INTO products (name, price, unit) VALUES ($1, $2, $3)',
-        [name, price, unit]
-      );
-    }
+    const values = sampleProducts.map((_, index) => 
+      `($${index * 3 + 1}, $${index * 3 + 2}, $${index * 3 + 3})`
+    ).join(', ');
 
-    res.json({ 
+    const params = sampleProducts.flat();
+    
+    await client.query(
+      `INSERT INTO products (name, price, unit) VALUES ${values}`,
+      params
+    );
+
+    return res.json({ 
+      success: true,
       message: 'Database setup completed successfully',
       productsAdded: sampleProducts.length
     });
   } catch (error) {
-    console.error('Database setup error:', error);
-    res.status(500).json({ message: 'Database setup failed', error: error.message });
+    console.error('Database setup error:', error.message);
+    return res.status(500).json({ 
+      success: false,
+      error: 'Database setup failed',
+      details: error.message 
+    });
+  } finally {
+    await client.end();
   }
 }

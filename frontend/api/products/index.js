@@ -1,52 +1,44 @@
-// Vercel Serverless Function - Products API
+// Vercel Serverless Function - Products API (Optimized)
 import { createClient } from '@vercel/postgres';
 
 const client = createClient(process.env.POSTGRES_URL);
 
 export default async function handler(req, res) {
-  try {
-    // Handle different HTTP methods
-    switch (req.method) {
-      case 'GET':
-        await handleGet(req, res);
-        break;
-      case 'POST':
-        await handlePost(req, res);
-        break;
-      default:
-        res.setHeader('Allow', 'GET, POST');
-        res.status(405).end('Method Not Allowed');
-    }
-  } catch (error) {
-    console.error('Products API Error:', error);
-    res.status(500).json({ message: 'Error fetching products', error: error.message });
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
   }
-}
 
-async function handleGet(req, res) {
   try {
-    const result = await client.query('SELECT * FROM products ORDER BY name');
-    res.json(result.rows);
-  } catch (error) {
-    throw error;
-  }
-}
-
-async function handlePost(req, res) {
-  try {
-    const { name, price, unit } = req.body;
-    
-    if (!name || !price || !unit) {
-      return res.status(400).json({ message: 'Missing required fields' });
+    if (req.method === 'GET') {
+      const result = await client.query('SELECT id, name, price, unit FROM products ORDER BY name');
+      return res.json(result.rows);
     }
-
-    const result = await client.query(
-      'INSERT INTO products (name, price, unit) VALUES ($1, $2, $3) RETURNING *',
-      [name, price, unit]
-    );
     
-    res.status(201).json(result.rows[0]);
+    if (req.method === 'POST') {
+      const { name, price, unit } = req.body;
+      
+      if (!name || !price || !unit) {
+        return res.status(400).json({ error: 'Missing required fields' });
+      }
+
+      const result = await client.query(
+        'INSERT INTO products (name, price, unit) VALUES ($1, $2, $3) RETURNING id, name, price, unit',
+        [name, parseFloat(price), unit]
+      );
+      
+      return res.status(201).json(result.rows[0]);
+    }
+    
+    return res.status(405).json({ error: 'Method not allowed' });
   } catch (error) {
-    throw error;
+    console.error('Products API Error:', error.message);
+    return res.status(500).json({ error: 'Server error' });
+  } finally {
+    await client.end();
   }
 }

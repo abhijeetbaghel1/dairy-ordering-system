@@ -7,15 +7,28 @@
       "config": {
         "distDir": "build"
       }
+    },
+    {
+      "src": "api/**/*.js",
+      "use": "@vercel/node"
     }
   ],
   "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
     {
       "src": "/(.*)",
       "dest": "/index.html"
     }
   ],
+  "functions": {
+    "api/**/*.js": {
+      "maxDuration": 10
+    }
+  },
   "env": {
-    "REACT_APP_API_URL": "https://your-backend-url.railway.app"
+    "NODE_ENV": "production"
   }
 }
