@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import API_BASE_URL from '../config/api';
+import API_BASE_URL, { API_ENDPOINTS } from '../config/api';
 
 function OwnerOrdersPage() {
   const [orders, setOrders] = useState([]);
@@ -13,7 +13,7 @@ function OwnerOrdersPage() {
 
   const fetchOrders = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/orders`);
+      const response = await axios.get(`${API_BASE_URL}${API_ENDPOINTS.orders}`);
       setOrders(response.data);
       setLoading(false);
     } catch (error) {

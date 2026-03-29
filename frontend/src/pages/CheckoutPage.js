@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import API_BASE_URL from '../config/api';
+import API_BASE_URL, { API_ENDPOINTS } from '../config/api';
 
 function CheckoutPage() {
   const [selectedProducts, setSelectedProducts] = useState([]);
@@ -76,7 +76,7 @@ function CheckoutPage() {
         totalAmount: calculateTotal()
       };
 
-      const response = await axios.post(`${API_BASE_URL}/api/orders`, orderData);
+      const response = await axios.post(`${API_BASE_URL}${API_ENDPOINTS.orders}`, orderData);
       
       if (response.data) {
         setSuccess(true);

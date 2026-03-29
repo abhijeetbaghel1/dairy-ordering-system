@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import API_BASE_URL from '../config/api';
+import API_BASE_URL, { API_ENDPOINTS } from '../config/api';
 
 function ProductsPage() {
   const [products, setProducts] = useState([]);
@@ -16,7 +16,7 @@ function ProductsPage() {
 
   const fetchProducts = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/products`);
+      const response = await axios.get(`${API_BASE_URL}${API_ENDPOINTS.products}`);
       setProducts(response.data);
       
       // Initialize quantities with 0 for each product
