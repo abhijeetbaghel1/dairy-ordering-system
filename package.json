@@ -1,0 +1,14 @@
+{
+  "name": "dairy-ordering-system",
+  "version": "1.0.0",
+  "description": "Dairy ordering system with MySQL",
+  "main": "backend/server-mysql.js",
+  "scripts": {
+    "start": "cd backend && node server-mysql.js",
+    "build": "cd backend && npm install",
+    "dev": "cd backend && npm run dev"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
