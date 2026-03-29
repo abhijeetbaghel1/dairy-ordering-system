@@ -1,8 +1,8 @@
 [phases.setup]
-nixPkgs = ["nodejs_20", "mysql-client"]
+nixPkgs = ["nodejs_20"]
 
 [phases.build]
-cmds = ["cd backend && npm install"]
+cmds = ["npm install"]
 
 [start]
-cmd = "cd backend && node server-mysql.js"
+cmd = "node server-mysql.js"
